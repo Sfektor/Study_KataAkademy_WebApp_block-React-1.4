@@ -1,7 +1,7 @@
+import { Component } from 'react';
+import { formatDistanceToNow } from 'date-fns'
+
 import './task.css'
-
-import { Component } from 'react'
-
 export default class Task extends Component {
 
 	state = {
@@ -33,14 +33,14 @@ export default class Task extends Component {
 	}
 
 	render () {
-		const {label, done, edit} = this.props;
-		
+		const {label, done, edit, time} = this.props;
+
 		let classNameChange = null;
-		let tagChange = null;
+		let tagChangeEdit = null;
 		if (done) classNameChange = 'completed'
 		if (edit) {
 			classNameChange = 'editing'
-			tagChange = (
+			tagChangeEdit = (
 				<form onSubmit = { this.onSubmit }>
 					<input 
 						type = 'text'
@@ -56,15 +56,15 @@ export default class Task extends Component {
 			<>
 				<li className = {classNameChange} onClick = { this.clickOnElem } >
 					<div className = "view">
-						<input className = "toggle" type = "checkbox" />
+						<input className = "toggle" type = "checkbox" defaultChecked = {done} />
 						<label>
 							<span className = "description">{ label }</span>
-							<span className = "created"></span>
+							<span className = "created">created { formatDistanceToNow(time, { includeSeconds: true }) } ago</span>
 						</label>
 						<button className = "icon icon-edit"></button>
 						<button className = "icon icon-destroy"></button>
 					</div>
-					{tagChange}
+					{tagChangeEdit}
 				</li>
 			</>
 		);

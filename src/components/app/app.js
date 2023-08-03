@@ -1,5 +1,6 @@
 import { Component } from 'react';
 
+
 import './app.css';
 
 import NewTaskForm from "../new-task-form";
@@ -8,11 +9,21 @@ import Footer from '../footer/footer';
 
 export default class App extends Component {
 
-	uniqID = 1;
-
 	state = {
 		todoData: [],
-		filter: 'all'
+		filter: 'all',
+	}
+
+	// создание задачи и присваивание ID
+	createTodoItem(value) {
+		const count = this.state.todoData.length
+		return {
+			label: value,
+			done: false,
+			edit: false,
+			id: count + 1,
+			time: Date.now()
+		}
 	}
 
 // Удаление задачи
@@ -20,28 +31,21 @@ export default class App extends Component {
 		this.setState(({ todoData }) => {
 			const indexElem = todoData.findIndex((el) => id === el.id)
 			const newTodoData = todoData.toSpliced(indexElem, 1)
+			this.addStateInLocalStorage('state', newTodoData)
 			return {
 				todoData: newTodoData
 			};
 		});
 	};
 
-// создание задачи и присваивание ID
-	createTodoItem(value) {
-		return {
-			label: value,
-			done: false,
-			edit: false,
-			id: this.uniqID++
-		}
-	}
 // добавление задачи в список
 	addItem = (text) => {
 		const newItem = this.createTodoItem(text);
 		this.setState(({ todoData }) => {
 			const newArrData = [...todoData, newItem]
+			this.addStateInLocalStorage('state', newArrData)
 			return {
-				todoData: newArrData
+				todoData: newArrData,
 			}
 		})
 	}
@@ -53,6 +57,7 @@ export default class App extends Component {
 		newTodoData.forEach((el, index) => {
 			if (index === indexElem) el[propName] = !el[propName]
 		});
+		this.addStateInLocalStorage('state', newTodoData)
 		return newTodoData;
 	}
 
@@ -73,7 +78,7 @@ export default class App extends Component {
 			newTodoData.forEach((el, index) => {
 				if (indexElem === index) el.label = text
 			})
-			
+
 			return {
 				todoData: newTodoData
 			}
@@ -89,19 +94,18 @@ export default class App extends Component {
 	}
 
 // удаление выполненых задачь
-	clearComlited = (e) => {
-		if (e.target.classList.contains('clear-completed')) {
-			this.setState(({todoData}) => {
-				const newTodoData = todoData.slice(0)
-				newTodoData.forEach((el, index) => {
-					if (el.done) newTodoData.splice(index)
-				})
-	
-				return {
-					todoData: newTodoData
-				}
-			})
-		}
+	clearComlited = () => {
+		this.setState(({todoData}) => {
+			const newTodoData = todoData.reduce((acc, el) => {
+				if (!el.done) acc.push(el)
+				return acc
+			}, [])
+
+			this.addStateInLocalStorage('state', newTodoData)
+			return {
+				todoData: newTodoData
+			}
+		})
 	}
 
 // фильр по актывным/выполненым задачам
@@ -121,6 +125,20 @@ export default class App extends Component {
 		this.setState({filter})
 	}
 
+// Запись в LocalStorage
+	addStateInLocalStorage(nameKey, nameValue) {
+		localStorage.setItem(nameKey, JSON.stringify(nameValue))
+	}
+// Установка state из LocalStorage
+	componentDidMount() {
+		const rememberMyState = localStorage.getItem('state');
+		this.setState(({ todoData }) => {
+			return {
+				todoData: JSON.parse(rememberMyState) || [],
+			}
+		})
+	}
+
 	render() {
 		const doneCount = this.state.todoData.filter((el) => !el.done).length
 
@@ -135,6 +153,7 @@ export default class App extends Component {
 					editItem = { this.editItem }
 					onToggleDone = { this.onToggleDone }
 					onToggleEdit = { this.onToggleEdit }
+					time = { this.state.time }
 				/>
 				<Footer
 					doneCount = { doneCount }
