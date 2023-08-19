@@ -1,5 +1,6 @@
 import { Component } from 'react'
 import { formatDistanceToNow } from 'date-fns'
+import cn from 'classnames'
 
 import './task.css'
 export default class Task extends Component {
@@ -31,24 +32,37 @@ export default class Task extends Component {
     this.props.onToggleEdit()
   }
 
+  onKeyEsc = (e) => {
+    if (e.key === 'Escape') this.props.onToggleEdit()
+  }
+
   render() {
     const { label, done, edit, time } = this.props
 
-    let classNameChange = null
+    const formChangeClasses = cn({
+      ['completed']: done,
+      ['editing']: edit,
+    })
+
     let tagChangeEdit = null
-    if (done) classNameChange = 'completed'
     if (edit) {
-      classNameChange = 'editing'
       tagChangeEdit = (
         <form onSubmit={this.onSubmit}>
-          <input type="text" className="edit" value={this.state.label} onChange={this.inptValue} />
+          <input
+            type="text"
+            className="edit"
+            value={this.state.label}
+            onChange={this.inptValue}
+            onKeyDown={this.onKeyEsc}
+            autoFocus
+          />
         </form>
       )
     }
 
     return (
       <>
-        <li className={classNameChange} onClick={this.clickOnElem}>
+        <li className={formChangeClasses} onClick={this.clickOnElem}>
           <div className="view">
             <input className="toggle" type="checkbox" defaultChecked={done} />
             <label>

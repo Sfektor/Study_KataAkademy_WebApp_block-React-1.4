@@ -14,12 +14,11 @@ export default class App extends Component {
 
   // создание задачи и присваивание ID
   createTodoItem(value) {
-    const count = this.state.todoData.length
     return {
       label: value,
       done: false,
       edit: false,
-      id: count + 1,
+      id: Date.now(),
       time: Date.now(),
     }
   }
