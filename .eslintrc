@@ -1,7 +1,8 @@
 {
   "env": {
+    "es6": true,
     "browser": true,
-    "es2021": true
+    "node": true
   },
   "ignorePatterns": ["node_modules", "dist", "build"],
   "extends": [
@@ -22,7 +23,7 @@
   "plugins": ["react", "prettier", "import"],
   "rules": {
     "indent": ["error", 2, { "SwitchCase": 1 }],
-    "prettier/prettier": "error",
+    // "prettier/prettier": "error",
     "linebreak-style": [0, "unix"],
     "quotes": ["error", "single"],
     "semi": ["error", "never"],
@@ -35,6 +36,12 @@
       {
         "groups": ["builtin", "external", "internal", "parent", "sibling", "index"],
         "newlines-between": "always"
+      }
+    ],
+    "prettier/prettier": [
+      "error",
+      {
+        "endOfLine": "auto"
       }
     ]
   },

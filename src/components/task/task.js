@@ -1,11 +1,51 @@
 import { Component } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 import cn from 'classnames'
-
 import './task.css'
 export default class Task extends Component {
   state = {
     label: this.props.label,
+    min: Number(this.props.min),
+    sec: Number(this.props.sec),
+    pauseTimer: false,
+    overTimer: false,
+  }
+
+  clearTimer = null
+
+  componentDidMount() {
+    const { pauseTimer } = this.state
+    this.clearTimer = setInterval(this.tick, 1000)
+    this.setState({ pauseTimer: !pauseTimer })
+  }
+  componentWillUnmount() {
+    clearInterval(this.clearTimer)
+  }
+  componentDidUpdate() {
+    const { overTimer, min, sec, pauseTimer } = this.state
+    if (overTimer) {
+      clearInterval(this.clearTimer)
+    }
+    this.props.getTimeFromTimer(min, sec, pauseTimer, overTimer, this.props.time)
+  }
+
+  tick = () => {
+    const { min, sec, pauseTimer } = this.state
+
+    if (pauseTimer) return
+    if (min === 0 && sec === 0) {
+      this.setState({ overTimer: true })
+    } else if (sec == 0) {
+      this.setState({
+        min: min - 1,
+        sec: 59,
+      })
+    } else {
+      this.setState({
+        min: min,
+        sec: sec - 1,
+      })
+    }
   }
 
   clickOnElem = (e) => {
@@ -18,6 +58,14 @@ export default class Task extends Component {
     if (e.target.classList.contains('icon-edit')) {
       this.props.onToggleEdit()
     }
+    if (e.target.classList.contains('icon-play-pause')) {
+      this.playPauseTimer()
+    }
+  }
+
+  playPauseTimer() {
+    const { pauseTimer } = this.state
+    this.setState({ pauseTimer: !pauseTimer })
   }
 
   inptValue = (e) => {
@@ -37,28 +85,19 @@ export default class Task extends Component {
   }
 
   render() {
-    const { label, done, edit, time } = this.props
+    const { done, edit, time } = this.props
+    const { min, sec, label, overTimer } = this.state
 
     const formChangeClasses = cn({
       ['completed']: done,
       ['editing']: edit,
     })
 
-    let tagChangeEdit = null
-    if (edit) {
-      tagChangeEdit = (
-        <form onSubmit={this.onSubmit}>
-          <input
-            type="text"
-            className="edit"
-            value={this.state.label}
-            onChange={this.inptValue}
-            onKeyDown={this.onKeyEsc}
-            autoFocus
-          />
-        </form>
-      )
-    }
+    let showEditTask = edit ? (
+      <PrintEditTask onSubmit={this.onSubmit} value={label} onChange={this.inptValue} onKeyDown={this.onKeyEsc} />
+    ) : null
+    let showTimer = min || sec ? <PrintTimer min={min} sec={sec} /> : null
+    let showOverTimer = overTimer ? <PrintOverTimer /> : null
 
     return (
       <>
@@ -66,15 +105,40 @@ export default class Task extends Component {
           <div className="view">
             <input className="toggle" type="checkbox" defaultChecked={done} />
             <label>
-              <span className="description">{label}</span>
-              <span className="created">created {formatDistanceToNow(time, { includeSeconds: true })} ago</span>
+              <span className="title">{label}</span>
+              {showTimer}
+              {showOverTimer}
+              <span className="description">created set {formatDistanceToNow(time, { includeSeconds: true })} ago</span>
             </label>
             <button className="icon icon-edit"></button>
             <button className="icon icon-destroy"></button>
           </div>
-          {tagChangeEdit}
+          {showEditTask}
         </li>
       </>
     )
   }
+}
+
+function PrintTimer({ min, sec }) {
+  return (
+    <div className="description">
+      <button className="icon-play-pause"></button>
+      <span>{`${min < 10 ? '0' + min : min}:${sec < 10 ? '0' + sec : sec}`}</span>
+    </div>
+  )
+}
+function PrintEditTask({ onSubmit, value, onChange, onKeyDown }) {
+  return (
+    <form onSubmit={onSubmit}>
+      <input type="text" className="edit" value={value} onChange={onChange} onKeyDown={onKeyDown} autoFocus />
+    </form>
+  )
+}
+function PrintOverTimer() {
+  return (
+    <b>
+      <div className="description">Time is over</div>
+    </b>
+  )
 }

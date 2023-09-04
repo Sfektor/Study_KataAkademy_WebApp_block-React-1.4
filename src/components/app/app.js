@@ -13,13 +13,17 @@ export default class App extends Component {
   }
 
   // создание задачи и присваивание ID
-  createTodoItem(value) {
+  createTodoItem(label, min, sec) {
     return {
-      label: value,
+      label: label,
       done: false,
       edit: false,
       id: Date.now(),
       time: Date.now(),
+      min: min,
+      sec: sec,
+      pauseTimer: false,
+      overTimer: false,
     }
   }
 
@@ -36,8 +40,8 @@ export default class App extends Component {
   }
 
   // добавление задачи в список
-  addItem = (text) => {
-    const newItem = this.createTodoItem(text)
+  addItem = (label, min, sec) => {
+    const newItem = this.createTodoItem(label, min, sec)
     this.setState(({ todoData }) => {
       const newArrData = [...todoData, newItem]
       this.addStateInLocalStorage('state', newArrData)
@@ -47,7 +51,7 @@ export default class App extends Component {
     })
   }
 
-  // для исключение поторний кода
+  // для исключения поторний кода
   toggleProperty(arr, id, propName) {
     const indexElem = arr.findIndex((el) => id === el.id)
     const newTodoData = arr.slice(0)
@@ -122,6 +126,22 @@ export default class App extends Component {
     this.setState({ filter })
   }
 
+  getTimeFromTimer = (min, sec, pauseTimer, overTimer, id) => {
+    this.setState(({ todoData }) => {
+      const indexElem = todoData.findIndex((el) => id == el.id)
+      const newTodoData = todoData.slice(0)
+      newTodoData.forEach((el, index) => {
+        if (indexElem === index) {
+          el.min = min
+          el.sec = sec
+          el.pauseTimer = pauseTimer
+          el.overTimer = overTimer
+        }
+      })
+      this.addStateInLocalStorage('state', newTodoData)
+    })
+  }
+
   // Запись в LocalStorage
   addStateInLocalStorage(nameKey, nameValue) {
     localStorage.setItem(nameKey, JSON.stringify(nameValue))
@@ -138,9 +158,7 @@ export default class App extends Component {
 
   render() {
     const doneCount = this.state.todoData.filter((el) => !el.done).length
-
     const visibleItems = this.filter(this.state.todoData, this.state.filter)
-
     return (
       <>
         <NewTaskForm addItem={this.addItem} />
@@ -151,6 +169,7 @@ export default class App extends Component {
           onToggleDone={this.onToggleDone}
           onToggleEdit={this.onToggleEdit}
           time={this.state.time}
+          getTimeFromTimer={this.getTimeFromTimer}
         />
         <Footer
           doneCount={doneCount}

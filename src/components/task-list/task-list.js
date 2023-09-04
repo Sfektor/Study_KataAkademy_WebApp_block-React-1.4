@@ -4,7 +4,7 @@ import './task-list.css'
 
 import Task from '../task'
 
-const TaskList = ({ todos, onDeleted, onToggleDone, editItem, onToggleEdit }) => {
+const TaskList = ({ todos, onDeleted, onToggleDone, editItem, onToggleEdit, getTimeFromTimer }) => {
   const elem = todos.map((item) => {
     const { id, ...itemProps } = item
 
@@ -16,10 +16,10 @@ const TaskList = ({ todos, onDeleted, onToggleDone, editItem, onToggleEdit }) =>
         onToggleDone={() => onToggleDone(id)}
         editItem={editItem}
         onToggleEdit={() => onToggleEdit(id)}
+        getTimeFromTimer={getTimeFromTimer}
       />
     )
   })
-
   return (
     <section className="main">
       <ul className="todo-list">{elem}</ul>
