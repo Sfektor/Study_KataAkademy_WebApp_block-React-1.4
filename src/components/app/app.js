@@ -22,7 +22,7 @@ export default class App extends Component {
       time: Date.now(),
       min: min,
       sec: sec,
-      pauseTimer: false,
+      pauseTimer: true,
       overTimer: false,
     }
   }
@@ -57,9 +57,22 @@ export default class App extends Component {
     const newTodoData = arr.slice(0)
     newTodoData.forEach((el, index) => {
       if (index === indexElem) el[propName] = !el[propName]
+      if (propName === 'done' && el[propName]) {
+        el.pauseTimer = true
+      }
     })
     this.addStateInLocalStorage('state', newTodoData)
     return newTodoData
+  }
+
+  playPauseTimer = (id) => {
+    // const { pauseTimer } = this.props
+    // this.setState({ pauseTimer: !pauseTimer })
+    this.setState(({ todoData }) => {
+      return {
+        todoData: this.toggleProperty(todoData, id, 'pauseTimer'),
+      }
+    })
   }
 
   // отмечаем задачу как выполненую
@@ -170,6 +183,7 @@ export default class App extends Component {
           onToggleEdit={this.onToggleEdit}
           time={this.state.time}
           getTimeFromTimer={this.getTimeFromTimer}
+          playPauseTimer={this.playPauseTimer}
         />
         <Footer
           doneCount={doneCount}

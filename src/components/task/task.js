@@ -7,22 +7,20 @@ export default class Task extends Component {
     label: this.props.label,
     min: Number(this.props.min),
     sec: Number(this.props.sec),
-    pauseTimer: false,
     overTimer: false,
   }
 
   clearTimer = null
 
   componentDidMount() {
-    const { pauseTimer } = this.state
     this.clearTimer = setInterval(this.tick, 1000)
-    this.setState({ pauseTimer: !pauseTimer })
   }
   componentWillUnmount() {
     clearInterval(this.clearTimer)
   }
   componentDidUpdate() {
-    const { overTimer, min, sec, pauseTimer } = this.state
+    const { overTimer, min, sec } = this.state
+    const { pauseTimer } = this.props
     if (overTimer) {
       clearInterval(this.clearTimer)
     }
@@ -30,8 +28,8 @@ export default class Task extends Component {
   }
 
   tick = () => {
-    const { min, sec, pauseTimer } = this.state
-
+    const { min, sec } = this.state
+    const { pauseTimer } = this.props
     if (pauseTimer) return
     if (min === 0 && sec === 0) {
       this.setState({ overTimer: true })
@@ -59,13 +57,8 @@ export default class Task extends Component {
       this.props.onToggleEdit()
     }
     if (e.target.classList.contains('icon-play-pause')) {
-      this.playPauseTimer()
+      this.props.playPauseTimer()
     }
-  }
-
-  playPauseTimer() {
-    const { pauseTimer } = this.state
-    this.setState({ pauseTimer: !pauseTimer })
   }
 
   inptValue = (e) => {

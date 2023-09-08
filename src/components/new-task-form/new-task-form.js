@@ -34,7 +34,7 @@ export default class NewTaskForm extends Component {
 
   onSubmit = (e) => {
     e.preventDefault()
-    console.log(e)
+
     const { label, min, sec } = this.state
     if (label !== '') this.props.addItem(label, min, sec)
     this.setState({
@@ -71,7 +71,6 @@ export default class NewTaskForm extends Component {
             onChange={this.addValueInSec}
             value={this.state.sec}
             title="Max 60 sec"
-            onBlur={(e) => console.log(e)}
           />
           <button type="submit"></button>
         </form>
