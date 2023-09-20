@@ -1,58 +1,50 @@
-import { Component } from 'react'
-
+/* eslint-disable no-unused-vars */
+/* eslint-disable no-undef */
 import './app.css'
+
+import { useState, useEffect } from 'react'
 
 import NewTaskForm from '../new-task-form'
 import TaskList from '../task-list'
 import Footer from '../footer/footer'
 
-export default class App extends Component {
-  state = {
-    todoData: [],
-    filter: 'all',
-  }
+const App = () => {
+  const [todoData, setTodoData] = useState([])
+  const [filter, setFilter] = useState('all')
 
-  // создание задачи и присваивание ID
-  createTodoItem(label, min, sec) {
+  // Создание задачи и присваивание ID
+  const createTodoItem = (label, timeTimer) => {
     return {
       label: label,
       done: false,
       edit: false,
       id: Date.now(),
       time: Date.now(),
-      min: min,
-      sec: sec,
-      pauseTimer: true,
-      overTimer: false,
+      timer: timeTimer,
+      pauseTimer: false,
     }
   }
 
+  // Добавление задачи в список
+  const addItem = (label, min, sec) => {
+    let timeTimer = null
+    if (min || sec) timeTimer = Number(min) * 60 + Number(sec)
+    const newItem = createTodoItem(label, timeTimer)
+    const newArrData = [...todoData, newItem]
+    addStateInLocalStorage('state', newArrData)
+    setTodoData(newArrData)
+  }
+
   // Удаление задачи
-  deleteItem = (id) => {
-    this.setState(({ todoData }) => {
-      const indexElem = todoData.findIndex((el) => id === el.id)
-      const newTodoData = todoData.toSpliced(indexElem, 1)
-      this.addStateInLocalStorage('state', newTodoData)
-      return {
-        todoData: newTodoData,
-      }
-    })
+  const deleteItem = (id) => {
+    const indexElem = todoData.findIndex((el) => id === el.id)
+    const newTodoData = todoData.toSpliced(indexElem, 1)
+    addStateInLocalStorage('state', newTodoData)
+    setTodoData(newTodoData)
   }
 
-  // добавление задачи в список
-  addItem = (label, min, sec) => {
-    const newItem = this.createTodoItem(label, min, sec)
-    this.setState(({ todoData }) => {
-      const newArrData = [...todoData, newItem]
-      this.addStateInLocalStorage('state', newArrData)
-      return {
-        todoData: newArrData,
-      }
-    })
-  }
-
-  // для исключения поторний кода
-  toggleProperty(arr, id, propName) {
+  // Для исключения поторний кода (onToggleDone, onToggleEdit, playPauseTimer)
+  const toggleProperty = (arr, id, propName) => {
     const indexElem = arr.findIndex((el) => id === el.id)
     const newTodoData = arr.slice(0)
     newTodoData.forEach((el, index) => {
@@ -61,69 +53,25 @@ export default class App extends Component {
         el.pauseTimer = true
       }
     })
-    this.addStateInLocalStorage('state', newTodoData)
+    addStateInLocalStorage('state', newTodoData)
     return newTodoData
   }
 
-  playPauseTimer = (id) => {
-    // const { pauseTimer } = this.props
-    // this.setState({ pauseTimer: !pauseTimer })
-    this.setState(({ todoData }) => {
-      return {
-        todoData: this.toggleProperty(todoData, id, 'pauseTimer'),
-      }
-    })
+  // Отмечаем задачу как выполненую
+  const onToggleDone = (id) => {
+    setTodoData(toggleProperty(todoData, id, 'done'))
   }
 
-  // отмечаем задачу как выполненую
-  onToggleDone = (id) => {
-    this.setState(({ todoData }) => {
-      return {
-        todoData: this.toggleProperty(todoData, id, 'done'),
-      }
-    })
-  }
-
-  // редактирование
-  editItem = (text, id) => {
-    this.setState(({ todoData }) => {
-      const indexElem = todoData.findIndex((el) => id == el.id)
-      const newTodoData = todoData.slice(0)
-      newTodoData.forEach((el, index) => {
-        if (indexElem === index) el.label = text
-      })
-
-      return {
-        todoData: newTodoData,
-      }
-    })
-  }
   // Включение и отключение редактирования
-  onToggleEdit = (id) => {
-    this.setState(({ todoData }) => {
-      return {
-        todoData: this.toggleProperty(todoData, id, 'edit'),
-      }
-    })
-  }
-
-  // удаление выполненых задачь
-  clearComlited = () => {
-    this.setState(({ todoData }) => {
-      const newTodoData = todoData.reduce((acc, el) => {
-        if (!el.done) acc.push(el)
-        return acc
-      }, [])
-
-      this.addStateInLocalStorage('state', newTodoData)
-      return {
-        todoData: newTodoData,
-      }
-    })
+  const onToggleEdit = (id) => {
+    setTodoData(toggleProperty(todoData, id, 'edit'))
   }
 
   // фильр по актывным/выполненым задачам
-  filter(items, filter) {
+  const onFilterChange = (filter) => {
+    setFilter(filter)
+  }
+  const filterChange = (items, filter) => {
     switch (filter) {
       case 'all':
         return items
@@ -135,63 +83,74 @@ export default class App extends Component {
         return items
     }
   }
-  onFilterChange = (filter) => {
-    this.setState({ filter })
+
+  // удаление выполненых задачь
+  const clearComlited = () => {
+    const newTodoData = todoData.reduce((acc, el) => {
+      if (!el.done) acc.push(el)
+      return acc
+    }, [])
+    addStateInLocalStorage('state', newTodoData)
+    setTodoData(newTodoData)
   }
 
-  getTimeFromTimer = (min, sec, pauseTimer, overTimer, id) => {
-    this.setState(({ todoData }) => {
-      const indexElem = todoData.findIndex((el) => id == el.id)
-      const newTodoData = todoData.slice(0)
-      newTodoData.forEach((el, index) => {
-        if (indexElem === index) {
-          el.min = min
-          el.sec = sec
-          el.pauseTimer = pauseTimer
-          el.overTimer = overTimer
-        }
-      })
-      this.addStateInLocalStorage('state', newTodoData)
+  // Установка паузы таймера
+  const playPauseTimer = (id) => {
+    setTodoData(toggleProperty(todoData, id, 'pauseTimer'))
+  }
+
+  // Получение актуального времени таймера (для установки в localStorage)
+  const getTimeFromTimer = (timeLeft, pauseTimer, id) => {
+    const indexElem = todoData.findIndex((el) => id == el.id)
+    const newTodoData = todoData.slice(0)
+    newTodoData.forEach((el, index) => {
+      if (indexElem === index) {
+        el.timer = timeLeft
+        el.pauseTimer = pauseTimer
+      }
     })
+    addStateInLocalStorage('state', newTodoData)
+    setTodoData(newTodoData)
+  }
+  // Получение актуального label (для установки в localStorage)
+  const getLabel = (label, id) => {
+    const indexElem = todoData.findIndex((el) => id == el.id)
+    const newTodoData = todoData.slice(0)
+    newTodoData.forEach((el, index) => {
+      if (indexElem === index) el.label = label
+    })
+    addStateInLocalStorage('state', newTodoData)
+    setTodoData(newTodoData)
   }
 
   // Запись в LocalStorage
-  addStateInLocalStorage(nameKey, nameValue) {
+  const addStateInLocalStorage = (nameKey, nameValue) => {
     localStorage.setItem(nameKey, JSON.stringify(nameValue))
   }
   // Установка state из LocalStorage
-  componentDidMount() {
+  useEffect(() => {
     const rememberMyState = localStorage.getItem('state')
-    this.setState(() => {
-      return {
-        todoData: JSON.parse(rememberMyState) || [],
-      }
-    })
-  }
+    setTodoData(JSON.parse(rememberMyState) || [])
+  }, [])
 
-  render() {
-    const doneCount = this.state.todoData.filter((el) => !el.done).length
-    const visibleItems = this.filter(this.state.todoData, this.state.filter)
-    return (
-      <>
-        <NewTaskForm addItem={this.addItem} />
-        <TaskList
-          todos={visibleItems}
-          onDeleted={this.deleteItem}
-          editItem={this.editItem}
-          onToggleDone={this.onToggleDone}
-          onToggleEdit={this.onToggleEdit}
-          time={this.state.time}
-          getTimeFromTimer={this.getTimeFromTimer}
-          playPauseTimer={this.playPauseTimer}
-        />
-        <Footer
-          doneCount={doneCount}
-          clearComlited={this.clearComlited}
-          filter={this.state.filter}
-          onFilterChange={this.onFilterChange}
-        />
-      </>
-    )
-  }
+  const doneCount = todoData.filter((el) => !el.done).length || 0
+  const visibleItems = filterChange(todoData, filter)
+
+  return (
+    <>
+      <NewTaskForm addItem={addItem} />
+      <TaskList
+        todos={visibleItems}
+        onDeleted={deleteItem}
+        onToggleDone={onToggleDone}
+        onToggleEdit={onToggleEdit}
+        getTimeFromTimer={getTimeFromTimer}
+        playPauseTimer={playPauseTimer}
+        getLabel={getLabel}
+      />
+      <Footer doneCount={doneCount} clearComlited={clearComlited} filter={filter} onFilterChange={onFilterChange} />
+    </>
+  )
 }
+
+export default App
